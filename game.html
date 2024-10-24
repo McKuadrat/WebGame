@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Quiz</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 24px;
+            color: #333;
+        }
+
+        .difficulty-btn {
+            margin: 10px;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .difficulty-btn:hover {
+            opacity: 0.8;
+        }
+
+        .start-btn {
+            background-color: #1c87c9;
+            color: white;
+        }
+
+        .result-card {
+            display: none;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            background-color: #f9f9f9;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .copy-key {
+            display: none;
+            margin-top: 10px;
+        }
+
+        .copy-key span {
+            font-weight: bold;
+            color: #333;
+        }
+    </style>
+    <script>
+        const maxNumber = 30;
+        let currentDifficulty = null;
+        let score = 0;
+        let lives = 3;
+        let timeLeft = 0;
+        let currentQuestion = {};
+        let timer;
+        let questionCount = 0;
+
+        const difficulties = {
+            easy: { time: 15, score: 1 },
+            medium: { time: 10, score: 2 },
+            hard: { time: 5, score: 3 },
+        };
+
+        function startQuiz(difficulty) {
+            currentDifficulty = difficulty;
+            score = 0;
+            lives = 3;
+            questionCount = 0;
+            loadQuestion();
+            document.getElementById('quiz').style.display = 'block';
+            document.getElementById('result').style.display = 'none';
+        }
+
+        function generateRandomProblem() {
+            const num1 = Math.floor(Math.random() * maxNumber) + 1; // 1-30
+            const num2 = Math.floor(Math.random() * maxNumber) + 1; // 1-30
+            const operation = Math.random() < 0.5 ? '+' : '-'; // Random + or -
+            let question, answer;
+
+            if (operation === '+') {
+                question = `${num1} + ${num2} =`;
+                answer = num1 + num2;
+            } else {
+                question = `${num1} - ${num2} =`;
+                answer = num1 - num2;
+            }
+
+            return { question, answer };
+        }
+
+        function loadQuestion() {
+            currentQuestion = generateRandomProblem();
+            document.getElementById('question').textContent = currentQuestion.question;
+            document.getElementById('answer').value = '';
+            timeLeft = difficulties[currentDifficulty].time;
+            document.getElementById('timer').textContent = `Time Left: ${timeLeft} seconds`;
+            startTimer();
+        }
+
+        function startTimer() {
+            clearInterval(timer);
+            timer = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer').textContent = `Time Left: ${timeLeft} seconds`;
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    loseLife();
+                }
+            }, 1000);
+        }
+
+        function checkAnswer() {
+            const userAnswer = parseInt(document.getElementById('answer').value);
+            if (userAnswer === currentQuestion.answer) {
+                score += difficulties[currentDifficulty].score;
+                questionCount++;
+                loadQuestion();
+            } else {
+                loseLife();
+            }
+        }
+
+        function loseLife() {
+            lives--;
+            if (lives > 0) {
+                alert("Wrong answer! You have " + lives + " lives left.");
+                loadQuestion();
+            } else {
+                endQuiz();
+            }
+        }
+
+        function endQuiz() {
+            clearInterval(timer);
+            document.getElementById('quiz').style.display = 'none';
+            document.getElementById('result').style.display = 'block';
+            document.getElementById('resultText').textContent = `Difficulty: ${currentDifficulty.charAt(0).toUpperCase() + currentDifficulty.slice(1)}, Score: ${score}`;
+        }
+
+        function playAgain() {
+            document.getElementById('result').style.display = 'none';
+            document.getElementById('quiz').style.display = 'none';
+            currentDifficulty = null;
+            document.getElementById('difficultySelection').style.display = 'block';
+        }
+
+        window.onload = function() {
+            document.getElementById('quiz').style.display = 'none';
+            document.getElementById('result').style.display = 'none';
+        };
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Math Quiz</h1>
+        <div id="difficultySelection">
+            <h2>Select Difficulty</h2>
+            <button class="difficulty-btn start-btn" onclick="startQuiz('easy')">Easy</button>
+            <button class="difficulty-btn start-btn" onclick="startQuiz('medium')">Medium</button>
+            <button class="difficulty-btn start-btn" onclick="startQuiz('hard')">Hard</button>
+        </div>
+
+        <div id="quiz">
+            <p id="question"></p>
+            <input type="text" id="answer" placeholder="Your answer">
+            <button onclick="checkAnswer()">Submit</button>
+            <p id="timer"></p>
+        </div>
+
+        <div id="result" class="result-card">
+            <h2>Game Over</h2>
+            <p id="resultText"></p>
+            <button onclick="playAgain()">Play Again</button>
+        </div>
+    </div>
+</body>
+</html>

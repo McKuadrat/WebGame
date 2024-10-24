@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyber Security Simulation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 24px;
+            color: #333;
+        }
+
+        .role-btn, .difficulty-btn {
+            margin: 10px;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .role-btn:hover, .difficulty-btn:hover {
+            opacity: 0.8;
+        }
+
+        .start-btn {
+            background-color: #1c87c9;
+            color: white;
+        }
+
+        .result-card {
+            display: none;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            background-color: #f9f9f9;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+    <script>
+        let role = null;
+        let difficulty = null;
+        let score = 0;
+        let lives = 2;
+        let timeLeft = 0;
+        let currentQuestion = {};
+        let timer;
+
+        const securityTasks = {
+            "Cyber Police": ["Secure Firewall", "Protect Country Data", "Protect Bank Data", "Secure Nuclear Data"],
+            "Hacker": ["Steal Country Data", "Firewall Bypassing", "Steal Nuclear Code Data", "Decrypt Encrypted Country Data"]
+        };
+
+        function generateRandomCode() {
+            const codeLength = Math.floor(Math.random() * 5) + 3; // Random length between 3 and 7 digits
+            let code = '';
+            for (let i = 0; i < codeLength; i++) {
+                code += Math.floor(Math.random() * 10); // Generate a random digit
+            }
+            return code;
+        }
+
+        function generateQuestion(role) {
+            const task = securityTasks[role][Math.floor(Math.random() * securityTasks[role].length)];
+            const code = generateRandomCode();
+            return { question: `Enter the code to ${task}: ${code}`, answer: code };
+        }
+
+        function selectRole(selectedRole) {
+            role = selectedRole;
+            document.getElementById('roleSelection').style.display = 'none';
+            document.getElementById('difficultySelection').style.display = 'block';
+        }
+
+        function selectDifficulty(selectedDifficulty) {
+            difficulty = selectedDifficulty;
+            score = 0;
+            lives = 2;
+            loadQuestion();
+            document.getElementById('difficultySelection').style.display = 'none';
+            document.getElementById('quiz').style.display = 'block';
+        }
+
+        function loadQuestion() {
+            currentQuestion = generateQuestion(role);
+            document.getElementById('question').textContent = currentQuestion.question;
+            document.getElementById('answer').value = '';
+            timeLeft = { easy: 15, medium: 10, hard: 8, pro: 5 }[difficulty];
+            document.getElementById('timer').textContent = `Time Left: ${timeLeft} seconds`;
+            startTimer();
+        }
+
+        function startTimer() {
+            clearInterval(timer);
+            timer = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer').textContent = `Time Left: ${timeLeft} seconds`;
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    loseLife();
+                }
+            }, 1000);
+        }
+
+        function checkAnswer() {
+            const userAnswer = document.getElementById('answer').value;
+            if (userAnswer === currentQuestion.answer) {
+                score++;
+                loadQuestion();
+            } else {
+                loseLife();
+            }
+        }
+
+        function loseLife() {
+            lives--;
+            if (lives > 0) {
+                alert("Wrong code! You have " + lives + " lives left.");
+                loadQuestion();
+            } else {
+                endGame();
+            }
+        }
+
+        function endGame() {
+            clearInterval(timer);
+            document.getElementById('quiz').style.display = 'none';
+            document.getElementById('result').style.display = 'block';
+            const resultMessage = role === "Hacker" ? 
+                "Cyber Police Will Caught You" : 
+                "Country Data Has Been Stolen";
+            document.getElementById('resultText').textContent = `${resultMessage}\nScore: ${score}\nRole: ${role}\nDifficulty: ${difficulty}`;
+        }
+
+        function playAgain() {
+            document.getElementById('result').style.display = 'none';
+            document.getElementById('difficultySelection').style.display = 'none';
+            document.getElementById('roleSelection').style.display = 'block';
+            role = null;
+            difficulty = null;
+        }
+
+        window.onload = function() {
+            document.getElementById('quiz').style.display = 'none';
+            document.getElementById('result').style.display = 'none';
+            document.getElementById('difficultySelection').style.display = 'none';
+        };
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Cyber Security Simulation</h1>
+        <div id="roleSelection">
+            <h2>Select Role</h2>
+            <button class="role-btn start-btn" onclick="selectRole('Cyber Police')">Cyber Police</button>
+            <button class="role-btn start-btn" onclick="selectRole('Hacker')">Hacker</button>
+        </div>
+
+        <div id="difficultySelection">
+            <h2>Select Difficulty</h2>
+            <button class="difficulty-btn start-btn" onclick="selectDifficulty('easy')">Easy</button>
+            <button class="difficulty-btn start-btn" onclick="selectDifficulty('medium')">Medium</button>
+            <button class="difficulty-btn start-btn" onclick="selectDifficulty('hard')">Hard</button>
+            <button class="difficulty-btn start-btn" onclick="selectDifficulty('pro')">Pro</button>
+        </div>
+
+        <div id="quiz">
+            <p id="question"></p>
+            <input type="text" id="answer" placeholder="Your answer">
+            <button onclick="checkAnswer()">Submit</button>
+            <p id="timer"></p>
+        </div>
+
+        <div id="result" class="result-card">
+            <h2>Game Over</h2>
+            <p id="resultText"></p>
+            <button onclick="playAgain()">Play Again</button>
+        </div>
+    </div>
+</body>
+</html>
