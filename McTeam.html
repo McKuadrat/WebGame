@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Make Your MC Team</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-gap: 20px;
+            justify-items: center;
+            margin-top: 50px;
+        }
+        .box {
+            width: 150px;
+            height: 150px;
+            background-color: black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .box img {
+            max-width: 100%;
+            max-height: 100%;
+        }
+        .score-board, #game-over, #play-again {
+            margin-top: 20px;
+            font-size: 18px;
+            display: none;
+        }
+        #game-over {
+            font-size: 24px;
+        }
+        #play-again {
+            font-size: 18px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Make Your MC Team</h1>
+    <div class="container">
+        <div>
+            <h3>Attacker</h3>
+            <div class="box" id="attacker" onclick="selectRole('attacker')"></div>
+        </div>
+        <div>
+            <h3>Defender</h3>
+            <div class="box" id="defender" onclick="selectRole('defender')"></div>
+        </div>
+        <div>
+            <h3>Healer</h3>
+            <div class="box" id="healer" onclick="selectRole('healer')"></div>
+        </div>
+        <div>
+            <h3>Archers</h3>
+            <div class="box" id="archers" onclick="selectRole('archers')"></div>
+        </div>
+    </div>
+    <div id="game-over">
+        Game Over!
+    </div>
+    <div class="score-board">
+        <p>Your Team Score: <span id="teamScore">0</span></p>
+        <p>Rank: <span id="rank">-</span></p>
+    </div>
+    <button id="play-again" onclick="resetGame()">Play Again</button>
+
+    <script>
+        const characters = [
+            {name: 'wither', img: 'wither.png', scores: {attacker: 250, defender: 300, healer: 50, archers: 100}},
+            {name: 'steve', img: 'steve.png', scores: {attacker: 100, defender: 200, healer: 150, archers: 250}},
+            {name: 'warden', img: 'warden.png', scores: {attacker: 300, defender: 150, healer: 200, archers: 50}},
+            {name: 'enderdragon', img: 'enderdragon.png', scores: {attacker: 350, defender: 250, healer: 100, archers: 150}},
+            {name: 'witherstorm', img: 'witherstorm.png', scores: {attacker: 400, defender: 350, healer: 50, archers: 200}},
+            {name: 'skeleton', img: 'skeleton.png', scores: {attacker: 150, defender: 200, healer: 50, archers: 300}},
+            {name: 'zombie', img: 'zombie.png', scores: {attacker: 50, defender: 150, healer: 200, archers: 100}},
+            {name: 'creeper', img: 'creeper.png', scores: {attacker: 200, defender: 100, healer: 50, archers: 250}},
+            {name: 'blaze', img: 'blaze.png', scores: {attacker: 250, defender: 150, healer: 100, archers: 200}},
+            {name: 'witch', img: 'witch.png', scores: {attacker: 120, defender: 80, healer: 250, archers: 50}}
+        ];
+
+        let selectedRoles = {attacker: false, defender: false, healer: false, archers: false};
+        let selectedCharacters = {};
+        let usedCharacters = [];  // Array to menyimpan karakter yang sudah dipilih
+        let totalScore = 0;
+
+        // Fungsi untuk acak gambar untuk yang belum dipilih, dan menghindari karakter yang sudah dipilih
+        function shuffleCharacters() {
+            const roles = ['attacker', 'defender', 'healer', 'archers'];
+            roles.forEach(role => {
+                if (!selectedRoles[role]) {
+                    let availableCharacters = characters.filter(char => !usedCharacters.includes(char.name));
+                    const randomCharacter = availableCharacters[Math.floor(Math.random() * availableCharacters.length)];
+                    document.getElementById(role).innerHTML = `<img src="${randomCharacter.img}" alt="${randomCharacter.name}">`;
+                    selectedCharacters[role] = randomCharacter; // Simpan karakter acak
+                }
+            });
+        }
+
+        // Pilih karakter dan hitung skor
+        function selectRole(role) {
+            if (!selectedRoles[role]) {
+                selectedRoles[role] = true;  // Tandai bahwa role ini sudah dipilih
+                usedCharacters.push(selectedCharacters[role].name);  // Tambahkan ke array karakter yang sudah dipilih
+                totalScore += selectedCharacters[role].scores[role];  // Tambahkan skor sesuai role yang dipilih
+                checkGameOver();  // Cek apakah sudah selesai memilih semua role
+                shuffleCharacters();  // Acak gambar lagi setelah memilih
+            }
+        }
+
+        // Cek apakah sudah semua role dipilih, jika iya, munculkan "Game Over" dan tampilkan skor dan rank
+        function checkGameOver() {
+            if (Object.values(selectedRoles).every(selected => selected)) {
+                document.getElementById('game-over').style.display = 'block';
+                document.querySelector('.score-board').style.display = 'block';
+                document.getElementById('teamScore').innerText = totalScore;  // Tampilkan skor
+                checkRank();  // Cek rank dan tampilkan
+                document.getElementById('play-again').style.display = 'block';  // Tampilkan tombol "Play Again"
+            }
+        }
+
+        // Cek rank berdasarkan score
+        function checkRank() {
+            let rank = '-';
+            if (totalScore >= 1250) {
+                rank = '1';
+            } else if (totalScore >= 900) {
+                rank = '2';
+            } else if (totalScore >= 850) {
+                rank = '3';
+            } else if (totalScore >= 650) {
+                rank = '4';
+            } else if (totalScore >= 420) {
+                rank = '5';
+            } else if (totalScore >= 320) {
+                rank = '6';
+            } else if (totalScore >= 250) {
+                rank = '7';
+            }
+            document.getElementById('rank').innerText = rank;
+        }
+
+        // Reset game untuk play again
+        function resetGame() {
+            selectedRoles = {attacker: false, defender: false, healer: false, archers: false};
+            usedCharacters = [];  // Reset karakter yang digunakan
+            totalScore = 0;
+            document.getElementById('game-over').style.display = 'none';
+            document.querySelector('.score-board').style.display = 'none';
+            document.getElementById('play-again').style.display = 'none';
+            shuffleCharacters();  // Acak lagi untuk reset game
+        }
+
+        window.onload = function() {
+            shuffleCharacters();  // Acak gambar pertama kali saat load
+        };
+    </script>
+</body>
+</html>
