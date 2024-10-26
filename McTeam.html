@@ -42,7 +42,10 @@
             align-items: center;
             border-radius: 10px;
             box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
-            transition: transform 0.3s;
+            transition: transform 0.3s, background-color 0.3s ease;
+        }
+        .box.selected {
+            background-color: rgba(0, 255, 0, 0.5); /* Lime dengan transparansi */
         }
         .box:hover {
             transform: scale(1.05);
@@ -146,6 +149,7 @@
                 selectedRoles[role] = true;
                 usedCharacters.push(selectedCharacters[role].name);
                 totalScore += selectedCharacters[role].scores[role];
+                document.getElementById(role).classList.add('selected'); // Tambahkan kelas "selected" untuk mengubah warna
                 checkGameOver();
                 shuffleCharacters();
             }
@@ -188,6 +192,11 @@
             document.getElementById('game-over').style.display = 'none';
             document.querySelector('.score-board').style.display = 'none';
             document.getElementById('play-again').style.display = 'none';
+
+            // Hapus semua kelas "selected"
+            const boxes = document.querySelectorAll('.box');
+            boxes.forEach(box => box.classList.remove('selected'));
+
             shuffleCharacters();
         }
 
