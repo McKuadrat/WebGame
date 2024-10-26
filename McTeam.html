@@ -52,15 +52,8 @@
         .box.selected {
             background-color: rgba(0, 255, 0, 0.5); /* Lime dengan transparansi */
         }
-        .box.spin {
-            animation: spin 0.5s linear infinite;
-        }
         .box:hover {
             transform: scale(1.05);
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
         }
         #game-over {
             font-size: 30px;
@@ -144,16 +137,22 @@
             roles.forEach(role => {
                 if (!selectedRoles[role]) {
                     let availableCharacters = characters.filter(char => !usedCharacters.includes(char.name));
-                    const randomCharacter = availableCharacters[Math.floor(Math.random() * availableCharacters.length)];
-
                     const box = document.getElementById(role);
-                    box.classList.add('spin'); // Tambah animasi spin
+
+                    // Animasi penggantian cepat gambar selama 1 detik
+                    let intervalId = setInterval(() => {
+                        const randomCharacter = availableCharacters[Math.floor(Math.random() * availableCharacters.length)];
+                        box.innerHTML = `<img src="${randomCharacter.img}" alt="${randomCharacter.name}">`;
+                    }, 100);
 
                     setTimeout(() => {
-                        box.classList.remove('spin'); // Hentikan animasi setelah 1 detik
-                        box.innerHTML = `<img src="${randomCharacter.img}" alt="${randomCharacter.name}">`;
-                        selectedCharacters[role] = randomCharacter;
-                    }, 1000); // Animasi berjalan selama 1 detik
+                        clearInterval(intervalId); // Hentikan penggantian gambar setelah 1 detik
+
+                        // Pilih karakter final secara acak
+                        const finalCharacter = availableCharacters[Math.floor(Math.random() * availableCharacters.length)];
+                        box.innerHTML = `<img src="${finalCharacter.img}" alt="${finalCharacter.name}">`;
+                        selectedCharacters[role] = finalCharacter;
+                    }, 1000); // 1 detik
                 }
             });
         }
@@ -208,7 +207,10 @@
             document.getElementById('play-again').style.display = 'none';
 
             const boxes = document.querySelectorAll('.box');
-            boxes.forEach(box => box.classList.remove('selected'));
+            boxes.forEach(box => {
+                box.innerHTML = '';
+                box.classList.remove('selected');
+            });
 
             shuffleCharacters();
         }
