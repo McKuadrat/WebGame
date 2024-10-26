@@ -6,69 +6,104 @@
     <title>Make Your MC Team</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
             text-align: center;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            font-size: 36px;
+            margin-bottom: 30px;
+            color: #333;
         }
         .container {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            grid-gap: 20px;
+            grid-gap: 40px;
             justify-items: center;
-            margin-top: 50px;
+            margin: 50px auto;
+            width: 60%;
+        }
+        .box-container {
+            text-align: center;
+        }
+        .box-container h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+            color: #555;
         }
         .box {
             width: 150px;
             height: 150px;
-            background-color: black;
+            background-color: #222;
             display: flex;
             justify-content: center;
             align-items: center;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s;
+        }
+        .box:hover {
+            transform: scale(1.05);
         }
         .box img {
             max-width: 100%;
             max-height: 100%;
-        }
-        .score-board, #game-over, #play-again {
-            margin-top: 20px;
-            font-size: 18px;
-            display: none;
+            border-radius: 8px;
         }
         #game-over {
-            font-size: 24px;
+            font-size: 30px;
+            font-weight: bold;
+            color: #ff4444;
+            display: none;
+            margin-top: 20px;
+        }
+        .score-board {
+            font-size: 20px;
+            color: #333;
+            display: none;
+            margin-top: 10px;
         }
         #play-again {
-            font-size: 18px;
+            margin-top: 30px;
             padding: 10px 20px;
             background-color: #4CAF50;
             color: white;
+            font-size: 18px;
             border: none;
+            border-radius: 5px;
             cursor: pointer;
+            transition: background-color 0.3s ease;
+            display: none;
+        }
+        #play-again:hover {
+            background-color: #45a049;
         }
     </style>
 </head>
 <body>
     <h1>Make Your MC Team</h1>
     <div class="container">
-        <div>
+        <div class="box-container">
             <h3>Attacker</h3>
             <div class="box" id="attacker" onclick="selectRole('attacker')"></div>
         </div>
-        <div>
+        <div class="box-container">
             <h3>Defender</h3>
             <div class="box" id="defender" onclick="selectRole('defender')"></div>
         </div>
-        <div>
+        <div class="box-container">
             <h3>Healer</h3>
             <div class="box" id="healer" onclick="selectRole('healer')"></div>
         </div>
-        <div>
+        <div class="box-container">
             <h3>Archers</h3>
             <div class="box" id="archers" onclick="selectRole('archers')"></div>
         </div>
     </div>
-    <div id="game-over">
-        Game Over!
-    </div>
+
+    <div id="game-over">Game Over!</div>
     <div class="score-board">
         <p>Your Team Score: <span id="teamScore">0</span></p>
         <p>Rank: <span id="rank">-</span></p>
@@ -91,10 +126,9 @@
 
         let selectedRoles = {attacker: false, defender: false, healer: false, archers: false};
         let selectedCharacters = {};
-        let usedCharacters = [];  // Array to menyimpan karakter yang sudah dipilih
+        let usedCharacters = [];
         let totalScore = 0;
 
-        // Fungsi untuk acak gambar untuk yang belum dipilih, dan menghindari karakter yang sudah dipilih
         function shuffleCharacters() {
             const roles = ['attacker', 'defender', 'healer', 'archers'];
             roles.forEach(role => {
@@ -102,34 +136,31 @@
                     let availableCharacters = characters.filter(char => !usedCharacters.includes(char.name));
                     const randomCharacter = availableCharacters[Math.floor(Math.random() * availableCharacters.length)];
                     document.getElementById(role).innerHTML = `<img src="${randomCharacter.img}" alt="${randomCharacter.name}">`;
-                    selectedCharacters[role] = randomCharacter; // Simpan karakter acak
+                    selectedCharacters[role] = randomCharacter;
                 }
             });
         }
 
-        // Pilih karakter dan hitung skor
         function selectRole(role) {
             if (!selectedRoles[role]) {
-                selectedRoles[role] = true;  // Tandai bahwa role ini sudah dipilih
-                usedCharacters.push(selectedCharacters[role].name);  // Tambahkan ke array karakter yang sudah dipilih
-                totalScore += selectedCharacters[role].scores[role];  // Tambahkan skor sesuai role yang dipilih
-                checkGameOver();  // Cek apakah sudah selesai memilih semua role
-                shuffleCharacters();  // Acak gambar lagi setelah memilih
+                selectedRoles[role] = true;
+                usedCharacters.push(selectedCharacters[role].name);
+                totalScore += selectedCharacters[role].scores[role];
+                checkGameOver();
+                shuffleCharacters();
             }
         }
 
-        // Cek apakah sudah semua role dipilih, jika iya, munculkan "Game Over" dan tampilkan skor dan rank
         function checkGameOver() {
             if (Object.values(selectedRoles).every(selected => selected)) {
                 document.getElementById('game-over').style.display = 'block';
                 document.querySelector('.score-board').style.display = 'block';
-                document.getElementById('teamScore').innerText = totalScore;  // Tampilkan skor
-                checkRank();  // Cek rank dan tampilkan
-                document.getElementById('play-again').style.display = 'block';  // Tampilkan tombol "Play Again"
+                document.getElementById('teamScore').innerText = totalScore;
+                checkRank();
+                document.getElementById('play-again').style.display = 'block';
             }
         }
 
-        // Cek rank berdasarkan score
         function checkRank() {
             let rank = '-';
             if (totalScore >= 1250) {
@@ -150,19 +181,18 @@
             document.getElementById('rank').innerText = rank;
         }
 
-        // Reset game untuk play again
         function resetGame() {
             selectedRoles = {attacker: false, defender: false, healer: false, archers: false};
-            usedCharacters = [];  // Reset karakter yang digunakan
+            usedCharacters = [];
             totalScore = 0;
             document.getElementById('game-over').style.display = 'none';
             document.querySelector('.score-board').style.display = 'none';
             document.getElementById('play-again').style.display = 'none';
-            shuffleCharacters();  // Acak lagi untuk reset game
+            shuffleCharacters();
         }
 
         window.onload = function() {
-            shuffleCharacters();  // Acak gambar pertama kali saat load
+            shuffleCharacters();
         };
     </script>
 </body>
