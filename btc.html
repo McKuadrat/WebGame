@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pepsi Trading</title>
+    <style>
+    	body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-color: #f4f4f4;
+}
+
+.chart-container {
+    width: 98%;
+    max-width: 600px;
+    margin: 20px auto;
+}
+
+button {
+    padding: 10px 20px;
+    margin: 10px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+button:first-child {
+    background-color: green;
+    color: white;
+}
+
+button:last-child {
+    background-color: red;
+    color: white;
+}
+
+.credit {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    font-size: 12px;
+    color: gray;
+    font-style: italic;
+}
+</style>
+</head>
+<body>
+    <h1>Pepsi Shares</h1>
+    <div class="chart-container">
+        <canvas id="chart"></canvas>
+    </div>
+    <p class="credit">Made By MC Kuadrat</p>
+    <p>Profit: <span id="profit">0%</span></p>
+    <p>Your Profit: <span id="yourProfit">$0</span></p>
+    <p>Number of Shares: <span id="shares">0</span></p>
+    <p>Current Stock Price: <span id="stockPrice">$100</span></p>
+    <p>Balance: <span id="balance">$1000</span></p>
+
+    <div class="buttons">
+        <button id="buyButton" onclick="buyShare()">BUY MORE ($500)</button>
+        <button onclick="sellShare()">SELL</button>
+    </div>
+
+    <script>
+    	const chartCanvas = document.getElementById("chart");
+const ctx = chartCanvas.getContext("2d");
+chartCanvas.width = 400;
+chartCanvas.height = 200;
+
+let balance = 5000;
+let stockPrice = 500;
+let shares = 0;
+let profitPercent = 0;
+let yourProfit = 0;
+let buyPrice = 500;
+let trend = 0;
+let trendCount = 0;
+
+let priceHistory = [];
+for (let i = 0; i < 30; i++) {
+    stockPrice += (Math.random() < 0.5 ? -1 : 1) * (Math.random() * 10 + 5);
+    stockPrice = Math.max(400, Math.min(600, stockPrice));
+    priceHistory.push(stockPrice);
+}
+
+function getPriceChange() {
+    let chanceUp = 50; // Peluang naik awal 50%
+    let chanceDown = 50; // Peluang turun awal 50%
+
+    if (profitPercent <= -13) {
+        chanceUp += 2; // Tambah peluang naik 2%
+        chanceDown -= 1; // Kurangi peluang turun 1%
+    } else if (profitPercent >= 13) {
+        chanceUp -= 1; // Kurangi peluang naik 1%
+        chanceDown += 2; // Tambah peluang turun 2%
+    }
+
+    let direction;
+    
+    if (trendCount > 0) {
+        direction = trend;
+        trendCount--;
+    } else {
+        let roll = Math.random() * 100;
+        direction = roll < chanceUp ? 1 : -1; // Pilih naik atau turun sesuai peluang
+
+        if (Math.random() < 0.2) {
+            trend = direction;
+            trendCount = Math.floor(Math.random() * 2) + 2;
+        }
+    }
+
+    let change = direction * (Math.random() * 12 + 3);
+    return change;
+}
+
+function drawChart() {
+    ctx.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
+    
+    ctx.beginPath();
+    ctx.moveTo(0, chartCanvas.height - (priceHistory[0] - 400));
+
+    for (let i = 1; i < priceHistory.length; i++) {
+        let x = (i / priceHistory.length) * chartCanvas.width;
+        let y = chartCanvas.height - (priceHistory[i] - 400);
+        
+        ctx.strokeStyle = priceHistory[i] > priceHistory[i - 1] ? "green" : "red";
+        ctx.lineWidth = 2;
+        ctx.lineTo(x, y);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+    }
+}
+
+function updateStockPrice() {
+    let change = getPriceChange();
+    stockPrice += change;
+    stockPrice = Math.max(400, Math.min(600, stockPrice));
+
+    priceHistory.push(stockPrice);
+    if (priceHistory.length > 30) priceHistory.shift();
+
+    profitPercent = ((stockPrice - 500) / 500) * 100;
+    yourProfit = shares * (stockPrice - buyPrice);
+
+    document.getElementById("profit").innerText = profitPercent.toFixed(2) + "%";
+    document.getElementById("yourProfit").innerText = "$" + yourProfit.toFixed(2);
+    document.getElementById("stockPrice").innerText = "$" + stockPrice.toFixed(2);
+    document.getElementById("buyButton").innerText = `BUY MORE ($${stockPrice.toFixed(2)})`;
+
+    drawChart();
+}
+
+function buyShare() {
+    if (balance >= stockPrice) {
+        shares++;
+        balance -= stockPrice;
+        buyPrice = stockPrice;
+        document.getElementById("shares").innerText = shares;
+        document.getElementById("balance").innerText = "$" + balance.toFixed(2);
+    }
+}
+
+function sellShare() {
+    if (shares > 0) {
+        balance += buyPrice + (stockPrice - buyPrice);
+        shares--;
+        document.getElementById("shares").innerText = shares;
+        document.getElementById("balance").innerText = "$" + balance.toFixed(2);
+    }
+}
+
+setInterval(updateStockPrice, 2000);
+drawChart();
+    </script>
+</body>
+</html>
