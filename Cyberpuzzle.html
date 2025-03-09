@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyber Bank Heist</title>
+    <style>
+        body {
+            background-color: black;
+            color: #00ff00;
+            font-family: monospace;
+            padding: 20px;
+        }
+        #terminal {
+            border: 2px solid #00ff00;
+            padding: 10px;
+            width: 600px;
+            height: 400px;
+            overflow-y: auto;
+        }
+        .text-green { color: #00ff00; } /* Base64 Decode */
+        .text-darkblue { color: #004cff; } /* ASCII to Text */
+        input {
+            background: black;
+            color: #00ff00;
+            border: none;
+            font-family: monospace;
+            font-size: 16px;
+            width: 100%;
+        }
+        h3 {
+          color: #00ff00;
+          font-family: Monospace;
+        }
+    </style>
+</head>
+<body>
+	<h1>Bank Heist Puzzle</h1>
+    <div id="terminal">
+        <p id="output">[System] Mencari kode masuk bank...</p>
+        <p id="base64" class="text-green"></p>
+        <input type="text" id="input" placeholder="Masukkan kode..." autofocus>
+    </div>
+    <h3>Made by MC Kuadrat</h3>
+
+    <script>
+        // Fungsi Acak String
+        function randomString(length) {
+            let chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+            let result = "";
+            for (let i = 0; i < length; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+
+        // Fungsi untuk mengubah teks menjadi ASCII
+        function textToAscii(text) {
+            return text.split('').map(char => char.charCodeAt(0)).join(' ');
+        }
+
+        // Fungsi untuk mengubah ASCII menjadi teks
+        function asciiToText(ascii) {
+            return ascii.split(' ').map(code => String.fromCharCode(code)).join('');
+        }
+
+        // Fungsi untuk encode ke Base64
+        function toBase64(text) {
+            return btoa(text);
+        }
+
+        // Fungsi decode Base64
+        function fromBase64(base64) {
+            return atob(base64);
+        }
+
+        // **DATA LEVEL**
+        let level = 1;
+        let challenge, answer;
+
+        function generateChallenge() {
+            if (level === 1) {
+                answer = randomString(6);
+                challenge = btoa(answer);
+                document.getElementById("base64").className = "text-green";
+            } 
+            else if (level === 2) {
+                let username = randomString(5);
+                let password = randomString(5);
+                answer = `${username}:${password}`;
+                challenge = btoa(answer);
+                document.getElementById("base64").className = "text-green";
+            } 
+            else if (level === 3) {
+            	rtext = randomString(6);
+                answer = toBase64(rtext);
+                challenge = `Encode teks ini ke Base64: "${answer}"`;
+                document.getElementById("base64").className = "text-darkblue";
+            } 
+            else if (level === 4) {
+    let text = randomString(6);
+    challenge = `Cari kode ASCII dari: "${text}"`;
+    
+    // Simpan jawaban sebagai angka ASCII yang dipisahkan dengan spasi
+    answer = text.split('').map(char => char.charCodeAt(0)).join(' ');
+
+    document.getElementById("base64").className = "text-green";
+}
+            else if (level === 5) {
+                let text = randomString(6);
+                answer = toBase64(text);
+                challenge = `Encode teks ini ke Base64: "${text}"`;
+                document.getElementById("base64").className = "text-darkblue";
+            } 
+            else if (level === 6) {
+                let text = randomString(6);
+                challenge = `Berikan ASCII dari teks ini, lalu encode ke Base64: "${text}"`;
+                answer = toBase64(textToAscii(text));
+                document.getElementById("base64").className = "text-darkblue";
+            } 
+            else if (level === 7) {
+                let text = randomString(6);
+                answer = toBase64(text);
+                challenge = `Encode teks ini ke Base64: "${text}"`;
+                document.getElementById("base64").className = "text-darkblue";
+            }
+            else if (level === 8) {
+    let text = randomString(6);
+    let ascii = text.split('').map(char => char.charCodeAt(0)).join(',');
+    answer = toBase64(ascii); // Encode ASCII ke Base64
+    challenge = `Ubah teks ini ke ASCII, lalu encode ke Base64: "${text}"`;
+    document.getElementById("base64").className = "text-darkblue";
+}
+            else if (level === 9) {
+    let text = randomString(6);
+    let base64 = toBase64(text);
+    let ascii = textToAscii(text);
+    answer = ascii; // Jawaban harus ASCII, bukan Base64 dari ASCII
+    challenge = `Decode Base64 ini lalu ubah ke ASCII: "${base64}"`;
+    document.getElementById("base64").className = "text-darkblue";
+}
+            else if (level === 10) {
+                challenge = "Berapa uang yang ingin kamu ambil? (Jawaban: angka bebas)";
+                document.getElementById("base64").className = "text-white";
+                answer = "bebas";
+            }
+
+            document.getElementById("base64").innerText = `[Level ${level}] ${challenge}`;
+        }
+
+        generateChallenge();
+
+        document.getElementById("input").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                let inputVal = this.value.trim();
+                this.value = "";
+
+                if (level < 10) {
+                    if (inputVal === answer) {
+                        document.getElementById("output").innerHTML += `<br>[Level ${level} Complete]`;
+                        level++;
+                        setTimeout(generateChallenge, 1000);
+                    } else {
+                        document.getElementById("output").innerHTML += `<br>[Error] Jawaban salah!`;
+                    }
+                } else {
+                    document.getElementById("output").innerHTML += `<br>[Bank Sukses] Uang kamu: $${inputVal}`;
+                }
+            }
+        });
+    </script>
+
+</body>
+</html>
