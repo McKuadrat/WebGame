@@ -1,65 +1,334 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MC Kuadrat's Web Game</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>MC Kuadrat's Web Game</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --bg: #070a12;
+        --ink: #e9eefb;
+        --muted: #8b95b0;
+        --glass: rgba(255, 255, 255, 0.045);
+        --line: rgba(255, 255, 255, 0.10);
+        --font: "Space Grotesk", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    }
 
-        .container {
-            background-color: #ffffff;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            max-width: 400px;
-            text-align: center;
-        }
+    * { box-sizing: border-box; }
 
-        h1 {
-            font-size: 28px;
-            color: #333;
-            margin-bottom: 20px;
-        }
+    html { color-scheme: dark; }
 
-        .button {
-            background-color: #1c87c9;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 18px;
-            margin: 10px;
-            width: 100%;
-            transition: background-color 0.3s ease;
-        }
+    body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: var(--font);
+        color: var(--ink);
+        background: var(--bg);
+        overflow-x: hidden;
+    }
 
-        .button:hover {
-            background-color: #155d8b;
-        }
-    </style>
+    /* Animated gradient glow behind everything */
+    .aurora {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        overflow: hidden;
+    }
+    .aurora span {
+        position: absolute;
+        width: 55vmax;
+        height: 55vmax;
+        border-radius: 50%;
+        filter: blur(90px);
+        opacity: 0.35;
+        animation: drift 22s ease-in-out infinite alternate;
+    }
+    .aurora span:nth-child(1) { background: #1f6fff; top: -20vmax; left: -15vmax; }
+    .aurora span:nth-child(2) { background: #8a2be2; bottom: -25vmax; right: -15vmax; animation-duration: 28s; }
+    .aurora span:nth-child(3) { background: #00c2a8; top: 35%; left: 40%; width: 30vmax; height: 30vmax; opacity: 0.18; animation-duration: 34s; }
+
+    @keyframes drift {
+        from { transform: translate(0, 0) scale(1); }
+        to   { transform: translate(8vmax, 6vmax) scale(1.15); }
+    }
+
+    #net {
+        position: fixed;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+    }
+
+    main {
+        position: relative;
+        z-index: 2;
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: calc(48px + env(safe-area-inset-top, 0px)) 20px calc(56px + env(safe-area-inset-bottom, 0px));
+    }
+
+    header {
+        text-align: center;
+        margin-bottom: 44px;
+    }
+
+    h1 {
+        margin: 0;
+        font-size: clamp(34px, 7vw, 64px);
+        line-height: 1.05;
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        background: linear-gradient(100deg, #ffffff 10%, #7fb0ff 45%, #c08bff 80%);
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        animation: shine 8s linear infinite;
+    }
+
+    @keyframes shine { to { background-position: 200% center; } }
+
+    header p {
+        margin: 14px 0 0;
+        color: var(--muted);
+        font-size: 17px;
+    }
+
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 18px;
+    }
+
+    .card {
+        --c: #4f9dff;
+        --mx: 50%;
+        --my: 50%;
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 22px 20px;
+        border-radius: 18px;
+        text-decoration: none;
+        color: var(--ink);
+        background: var(--glass);
+        border: 1px solid var(--line);
+        -webkit-backdrop-filter: blur(14px);
+        backdrop-filter: blur(14px);
+        overflow: hidden;
+        transform: perspective(800px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+        transition: transform 0.18s ease-out, border-color 0.25s, box-shadow 0.25s;
+        opacity: 0;
+        animation: rise 0.7s cubic-bezier(.2,.8,.2,1) forwards;
+        animation-delay: calc(var(--i) * 70ms + 150ms);
+    }
+
+    @keyframes rise {
+        from { opacity: 0; transform: translateY(24px) scale(0.97); }
+        to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* Spotlight that follows the cursor */
+    .card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(260px circle at var(--mx) var(--my), color-mix(in srgb, var(--c) 38%, transparent), transparent 70%);
+        opacity: 0;
+        transition: opacity 0.3s;
+        pointer-events: none;
+    }
+
+    .card:hover, .card:focus-visible {
+        border-color: color-mix(in srgb, var(--c) 70%, white 0%);
+        box-shadow: 0 10px 40px -12px var(--c);
+        outline: none;
+    }
+    .card:hover::before, .card:focus-visible::before { opacity: 1; }
+
+    .card:focus-visible { outline: 2px solid var(--c); outline-offset: 3px; }
+
+    .icon {
+        position: relative;
+        flex: none;
+        width: 52px;
+        height: 52px;
+        display: grid;
+        place-items: center;
+        font-size: 26px;
+        border-radius: 14px;
+        background: color-mix(in srgb, var(--c) 22%, transparent);
+        border: 1px solid color-mix(in srgb, var(--c) 45%, transparent);
+    }
+
+    .title {
+        position: relative;
+        font-size: 18px;
+        font-weight: 500;
+        line-height: 1.25;
+    }
+
+    .arrow {
+        position: relative;
+        margin-left: auto;
+        font-size: 20px;
+        color: var(--muted);
+        transition: transform 0.25s, color 0.25s;
+    }
+    .card:hover .arrow, .card:focus-visible .arrow { transform: translateX(5px); color: var(--c); }
+
+    .badge {
+        position: absolute;
+        top: 10px;
+        right: 12px;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 3px 9px;
+        border-radius: 99px;
+        background: var(--c);
+        color: #fff;
+        animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+        0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--c) 70%, transparent); }
+        50%      { box-shadow: 0 0 0 7px transparent; }
+    }
+
+    /* The new horror game gets a darker, redder look */
+    .card.horror {
+        --c: #ff2d4a;
+        background: linear-gradient(135deg, rgba(255, 45, 74, 0.10), rgba(255, 255, 255, 0.03));
+    }
+    .card.horror:hover .icon { animation: shake 0.4s linear infinite; }
+    @keyframes shake {
+        0%, 100% { transform: translate(0, 0) rotate(0); }
+        25% { transform: translate(-1px, 1px) rotate(-3deg); }
+        75% { transform: translate(1px, -1px) rotate(3deg); }
+    }
+
+    footer {
+        margin-top: 40px;
+        text-align: center;
+        color: var(--muted);
+        font-size: 14px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { animation: none !important; transition: none !important; }
+        .card { opacity: 1; }
+        #net { display: none; }
+    }
+</style>
 </head>
 <body>
-    <div class="container">
-        <h1>MC Kuadrat's Web Game</h1>
-        <button class="button" onclick="location.href='polcer.html'">Cyber Police/Hacker Simulation</button>
-        <button class="button" onclick="location.href='game.html'">Math Quiz</button>
-        <button class="button" onclick="location.href='McTeam.html'">MC Team Game</button>
-        <button class="button" onclick="location.href='Radius Raid/radiusraid.html'">Radius Raid</button>
-        <button class="button" onclick="location.href='Cube Slasher/menja/dist/index.html'">Cuble Slasher</button>
-        <button class="button" onclick="location.href='btc.html'">Pepsi Shares Games</button>
-        <button class="button" onclick="location.href='Cyberpuzzle.html'">Cyber Puzzle</button>
-    </div>
+    <div class="aurora" aria-hidden="true"><span></span><span></span><span></span></div>
+    <canvas id="net" aria-hidden="true"></canvas>
+
+    <main>
+        <header>
+            <h1>MC Kuadrat's<br>Web Game</h1>
+            <p>Pick a game and start playing.</p>
+        </header>
+
+        <nav class="grid" aria-label="Games">
+            <a class="card" style="--i:0; --c:#3b9eff" href="polcer.html">
+                <span class="icon">🕵️</span><span class="title">Cyber Police/Hacker Simulation</span><span class="arrow">→</span>
+            </a>
+            <a class="card" style="--i:1; --c:#ffb020" href="game.html">
+                <span class="icon">🧮</span><span class="title">Math Quiz</span><span class="arrow">→</span>
+            </a>
+            <a class="card" style="--i:2; --c:#22d3a0" href="McTeam.html">
+                <span class="icon">🏆</span><span class="title">MC Team Game</span><span class="arrow">→</span>
+            </a>
+            <a class="card" style="--i:3; --c:#a855f7" href="Radius%20Raid/radiusraid.html">
+                <span class="icon">🎯</span><span class="title">Radius Raid</span><span class="arrow">→</span>
+            </a>
+            <a class="card" style="--i:4; --c:#ff7849" href="Cube%20Slasher/menja/dist/index.html">
+                <span class="icon">🧊</span><span class="title">Cube Slasher</span><span class="arrow">→</span>
+            </a>
+            <a class="card" style="--i:5; --c:#4ade80" href="btc.html">
+                <span class="icon">📈</span><span class="title">Pepsi Shares Games</span><span class="arrow">→</span>
+            </a>
+            <a class="card" style="--i:6; --c:#22d3ee" href="Cyberpuzzle.html">
+                <span class="icon">🧩</span><span class="title">Cyber Puzzle</span><span class="arrow">→</span>
+            </a>
+            <a class="card horror" style="--i:7" href="knt.html">
+                <span class="badge">NEW</span>
+                <span class="icon">👻</span><span class="title">Possesed Paranormal</span><span class="arrow">→</span>
+            </a>
+        </nav>
+
+        <footer>© MC Kuadrat</footer>
+    </main>
+
+<script>
+    // Cursor spotlight + subtle 3D tilt on cards (mouse only)
+    document.querySelectorAll('.card').forEach(function (card) {
+        card.addEventListener('pointermove', function (e) {
+            if (e.pointerType !== 'mouse') return;
+            var r = card.getBoundingClientRect();
+            var x = e.clientX - r.left, y = e.clientY - r.top;
+            card.style.setProperty('--mx', x + 'px');
+            card.style.setProperty('--my', y + 'px');
+            card.style.setProperty('--ry', ((x / r.width - 0.5) * 8).toFixed(2) + 'deg');
+            card.style.setProperty('--rx', ((0.5 - y / r.height) * 8).toFixed(2) + 'deg');
+        });
+        card.addEventListener('pointerleave', function () {
+            card.style.setProperty('--rx', '0deg');
+            card.style.setProperty('--ry', '0deg');
+        });
+    });
+
+    // Floating particle network background
+    (function () {
+        var c = document.getElementById('net');
+        if (!c || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        var ctx = c.getContext('2d');
+        var dots = [], W, H, dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+        function resize() {
+            W = window.innerWidth; H = window.innerHeight;
+            c.width = W * dpr; c.height = H * dpr;
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            var n = Math.min(70, Math.floor(W * H / 20000));
+            dots = [];
+            for (var i = 0; i < n; i++) {
+                dots.push({
+                    x: Math.random() * W, y: Math.random() * H,
+                    vx: (Math.random() - 0.5) * 0.3, vy: (Math.random() - 0.5) * 0.3
+                });
+            }
+        }
+
+        function frame() {
+            ctx.clearRect(0, 0, W, H);
+            for (var i = 0; i < dots.length; i++) {
+                var a = dots[i];
+                a.x += a.vx; a.y += a.vy;
+                if (a.x < 0 || a.x > W) a.vx *= -1;
+                if (a.y < 0 || a.y > H) a.vy *= -1;
+                ctx.fillStyle = 'rgba(180,200,255,0.55)';
+                ctx.beginPath(); ctx.arc(a.x, a.y, 1.4, 0, 6.283); ctx.fill();
+                for (var j = i + 1; j < dots.length; j++) {
+                    var b = dots[j], dx = a.x - b.x, dy = a.y - b.y, d = dx * dx + dy * dy;
+                    if (d < 14000) {
+                        ctx.strokeStyle = 'rgba(150,180,255,' + (0.16 * (1 - d / 14000)).toFixed(3) + ')';
+                        ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(frame);
+        }
+
+        window.addEventListener('resize', resize);
+        resize();
+        frame();
+    })();
+</script>
 </body>
 </html>
